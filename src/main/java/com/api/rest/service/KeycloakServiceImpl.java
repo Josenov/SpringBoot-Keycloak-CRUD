@@ -7,6 +7,7 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.keycloak.OAuth2Constants;
 import org.keycloak.admin.client.resource.RealmResource;
+import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.admin.client.resource.UsersResource;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.RoleRepresentation;
@@ -14,6 +15,7 @@ import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.stereotype.Service;
 
 
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -104,6 +106,25 @@ public class KeycloakServiceImpl implements IKeycloakService{
 
     @Override
     public void updateUser(String userId, UserDTO userDTO) {
+        CredentialRepresentation credentialRepresentation = new CredentialRepresentation();
+        credentialRepresentation.setTemporary(false);
+        credentialRepresentation.setType(OAuth2Constants.PASSWORD);
+        credentialRepresentation.setValue(userDTO.getPassword());
+
+        UserRepresentation userRepresentation = new UserRepresentation();
+        userRepresentation.setFirstName(userDTO.getFirstName());
+        userRepresentation.setLastName(userDTO.getLastName());
+        userRepresentation.setEmail(userDTO.getEmail());
+        userRepresentation.setUsername(userDTO.getUsername());
+        userRepresentation.setEmailVerified(true);
+        userRepresentation.setEnabled(true);
+        userRepresentation.setCredentials(Collections.singletonList(credentialRepresentation));
+
+        UserResource userResource = KeycloakProvider.getRealmResource().users().get(userId);
+        userResource.update(userRepresentation);
+
+
+
 
     }
 
@@ -112,6 +133,8 @@ public class KeycloakServiceImpl implements IKeycloakService{
         KeycloakProvider.getRealmResource().users()
                 .get(userId)
                 .remove();
+
+
 
     }
 }
